@@ -70,4 +70,6 @@ npm install
 
 To run the the faucetmake sure your currently in the `ledgeriumfaucet` directory
 
-
+```
+node index
+```
