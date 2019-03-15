@@ -22,7 +22,7 @@ client.on('connect', () => {
     console.log(`[+] Connected to Redis`);
 });
 client.on('error', err => {
-    console.log(`[!] Error: ${err}`);
+    console.log(`[!] Error connecting to Redis: ${err}`);
 });
 
 
@@ -31,22 +31,17 @@ router.get('/', (request, response) => {
 })
 
 router.get('/transaction/:tx', (request, response) => {
-    const {
-        tx
-    } = request.params
+    const { tx } = request.params
     web3.eth.getTransaction(tx)
         .then(tx => {
             response.send(tx)
         })
 })
 
-router.post('/', checkLimit, makeTransaction, (request, response) => {})
+router.post('/', verifyRecaptcha, checkLimit, makeTransaction, (request, response) => {})
 
 function makeTransaction(request, response, next) {
-    verifyRecaptcha(request.body["g-recaptcha-response"], function(success) {
-        const {
-            address
-        } = request.body
+        const { address } = request.body
         rawTransaction.to = address
         web3.eth.accounts.signTransaction(rawTransaction, decryptedAccount.privateKey, (err, res) => {
             if (err) console.log(err)
@@ -80,10 +75,11 @@ function makeTransaction(request, response, next) {
                     })
             }
         });
-    })
 }
 
-function verifyRecaptcha(key, callback) {
+function verifyRecaptcha(request, response, next) {
+    const key = request.body["g-recaptcha-response"]
+
     https.get("https://www.google.com/recaptcha/api/siteverify?secret=" + process.env.CAPTCHA_SECRET + "&response=" + key, function(res) { 
         var data = "";
         res.on('data', function(chunk) {
@@ -91,17 +87,16 @@ function verifyRecaptcha(key, callback) {
         });
         res.on('end', function() {
             try {
-                var parsedData = JSON.parse(data);
-                callback(parsedData.success);
+                next()
             } catch (e) {
-                console.log(e)
-                callback(false);
+                response.send({
+                    success: false,
+                    message: "Invalid Captcha"
+                })
             }
         });
     });
 }
-
-
 
 
 function checkLimit(request, response, next) {
