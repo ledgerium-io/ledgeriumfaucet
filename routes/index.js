@@ -6,6 +6,7 @@ const https = require('https');
 const redis = require('redis');
 
 const client = redis.createClient(process.env.REDIS_URL);
+const requestLimit = process.env.REDIS_EXPIRE_SECONDS
 const web3 = new Web3(process.env.NODE_URL);
 const privateKey = process.env.PRIVATE_KEY
 const decryptedAccount = web3.eth.accounts.privateKeyToAccount(privateKey)
@@ -69,7 +70,7 @@ function makeTransaction(request, response, next) {
                         })
                         rawTransaction.nonce++
                         console.log(`[+] Recieved receipt`)
-                        client.set(address.toLowerCase(), receipt.to, 'EX', 60);
+                        client.set(address.toLowerCase(), receipt.to, 'EX', requestLimit);
                     })
                     .catch(error => {
                         response.send({
