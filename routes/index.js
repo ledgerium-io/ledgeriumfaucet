@@ -52,10 +52,6 @@ function makeTransaction(request, response, next) {
                         if (error) return console.log(error)
                         if (success) {
                             console.log(`[+] Sent successfully`)
-                            web3.eth.getTransactionCount("0xF232A4BF183cF17D09Bea23e19CEfF58Ad9dbFED")
-                                .then(count => {
-                                    return rawTransaction.nonce = count
-                                });
                         }
                     })
                     .then(receipt => {
