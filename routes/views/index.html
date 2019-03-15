@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="UTF-8">
+	<title>XLG Testnet Faucet</title> 
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+	<script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+	<script src='https://www.google.com/recaptcha/api.js'></script>
+	<link rel="stylesheet" type="text/css" href="main.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+	<script src='https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js'></script>
+	<link rel="shortcut icon" type="image/png" href="xlg.png"/>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+
+</head>
+
+<body>
+	<div class="ribbon">
+		<div class="container">
+			<h2 class="title" id="pageTitle">Ledgerium Faucet</h2> 
+			<div class="card" style="max-width:600px;">
+				<div class="card-block">
+					<form class="form-register" action="/" method="post" id="requestTokenForm">
+						<span style="margin:10px"></span><input type="text" id="address" name="address" placeholder="address" value="" /><span id="addressCheck" style="margin:10px"></span>
+						<br/>
+                        
+						<div class="row">
+							<div class="col-10 offset-1">
+                                <br>
+                                    <p>XLG</p>
+                                <img src="xlg.png" />
+                                
+								<p><b>Balance</b>: </p> <p id="xlgBalance"></p>
+							</div>				
+					</div>
+					<br>
+                    <div class="g-recaptcha" data-sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI" data-callback="enableRequest"></div> 
+					<br>
+					<button type="submit" class="btn btn-secondary" id="requestBtn">Request 3 XLG</button>
+					<a id="txUrl" target="_blank" style="display: block;margin-top: 10px;"></a>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+	<script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js/dist/web3.min.js"></script>
+	<script src="main.js"></script>
+</body>
+
+</html>
