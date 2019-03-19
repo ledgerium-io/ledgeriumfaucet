@@ -5,7 +5,7 @@ const dotenv = require('dotenv').config()
 const https = require('https');
 const redis = require('redis');
 
-const client = redis.createClient(process.env.REDIS_URL);
+const client = redis.createClient({ "host":'redis', "port": "6379" });
 const requestLimit = process.env.REDIS_EXPIRE_SECONDS
 const web3 = new Web3(process.env.NODE_URL);
 const privateKey = process.env.PRIVATE_KEY
