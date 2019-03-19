@@ -6,6 +6,12 @@ services:
       dockerfile: Dockerfile
     ports:
      - "8000:8000"
+    environment:
+      - NODE_URL=http://125.254.27.14:8545
+      - GOOGLE_CAPTCHA_SECRET=6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe
+      - PRIVATE_KEY=0x83a5803e698a3642d5309f119643f6a729c7c51fac00fdffac31983cb5275bb5
+      - REDIS_URL=redis
+      - REDIS_EXPIRE_SECONDS=86400
     volumes:
      - .:/code
      - /code/node_modules

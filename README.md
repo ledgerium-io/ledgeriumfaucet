@@ -53,13 +53,16 @@ Open the `.env` file in any text editor and insert the following
 ```
 PRIVATE_KEY=0x0000000000000000000000000000000000000000
 CAPTCHA_SECRET=6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe
+REDIS_URL=redis://127.0.0.1:6379
 NODE_URL=http://125.254.27.14:8545
 REDIS_EXPIRE_SECONDS=60
 ```
 
 * `PRIVATE_KEY` -> Private key of the address you want to use to send out funds
 
-* `CAPTCHA_SECRET` -> Google Captcha secret key, the one above is public for local testing only
+* `GOOGLE_CAPTCHA_SECRET` -> Google Captcha secret key, the one above is public for local testing only
+
+* `REDIS_URL` -> Use 'redis' if using in docker, or use an actual url
 
 * `NODE_URL` -> Ledgerium node address and port
 

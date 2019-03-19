@@ -5,7 +5,23 @@ const dotenv = require('dotenv').config()
 const https = require('https');
 const redis = require('redis');
 
-const client = redis.createClient({ "host":'redis', "port": "6379" });
+if(process.env.REDIS_URL == 'redis') {
+    const client = redis.createClient({ "host":'redis', "port": "6379" });
+    redisConnectionCheck()
+} else {
+    const client = redis.createClient(process.env.REDIS_URL);
+    redisConnectionCheck()
+}
+
+function redisConnectionCheck() {
+    client.on('connect', () => {
+        console.log(`[+] Connected to Redis`);
+    });
+    client.on('error', err => {
+        console.log(`[!] Error connecting to Redis: ${err}`);
+    });
+}
+const client = redis.createClient(process.env.REDIS_URL);
 const requestLimit = process.env.REDIS_EXPIRE_SECONDS
 const web3 = new Web3(process.env.NODE_URL);
 const privateKey = process.env.PRIVATE_KEY
@@ -18,12 +34,7 @@ let rawTransaction = {
     "data": ''
 };
 
-client.on('connect', () => {
-    console.log(`[+] Connected to Redis`);
-});
-client.on('error', err => {
-    console.log(`[!] Error connecting to Redis: ${err}`);
-});
+
 
 
 router.get('/', (request, response) => {
@@ -76,7 +87,7 @@ function makeTransaction(request, response, next) {
 function verifyRecaptcha(request, response, next) {
     const key = request.body["g-recaptcha-response"]
 
-    https.get("https://www.google.com/recaptcha/api/siteverify?secret=" + process.env.CAPTCHA_SECRET + "&response=" + key, function(res) { 
+    https.get("https://www.google.com/recaptcha/api/siteverify?secret=" + process.env.GOOGLE_CAPTCHA_SECRET + "&response=" + key, function(res) { 
         var data = "";
         res.on('data', function(chunk) {
             data += chunk.toString();
