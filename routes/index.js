@@ -7,13 +7,14 @@ const redis = require('redis');
 
 if(process.env.REDIS_URL == 'redis') {
     const client = redis.createClient({ "host":'redis', "port": "6379" });
-    redisConnectionCheck()
+    client.on('connect', () => {
+        console.log(`[+] Connected to Redis`);
+    });
+    client.on('error', err => {
+        console.log(`[!] Error connecting to Redis: ${err}`);
+    });
 } else {
     const client = redis.createClient(process.env.REDIS_URL);
-    redisConnectionCheck()
-}
-
-function redisConnectionCheck() {
     client.on('connect', () => {
         console.log(`[+] Connected to Redis`);
     });
