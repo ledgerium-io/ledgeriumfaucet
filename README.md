@@ -28,6 +28,16 @@ PONG
 
 [Download Redis](https://redis.io/download)
 
+### Docker (optional)
+Confirm you have Docker installed and running by `docker -v`, output should look like:
+
+```
+Docker version 18.09.2, build 6247962
+```
+
+[Download Docker](https://www.docker.com/get-started)
+
+
 # Download and Setup
 Clone this repository to your computer
 ```
@@ -62,7 +72,7 @@ REDIS_EXPIRE_SECONDS=60
 
 * `GOOGLE_CAPTCHA_SECRET` -> Google Captcha secret key, the one above is public for local testing only
 
-* `REDIS_URL` -> Use 'redis' if using in docker, or use an actual url
+* `REDIS_URL` -> Use 'redis' if using in docker, or a url if running locally
 
 * `NODE_URL` -> Ledgerium node address and port
 
@@ -77,10 +87,16 @@ npm install
 
 # Usage
 
-## Getting started
+## Locally
 
-To run the the faucet, make sure your currently in the `ledgeriumfaucet` directory
+To run the faucet, make sure your currently in the `ledgeriumfaucet` directory
 
 ```
 node index
+```
+
+## Docker Container (optional)
+
+```
+docker-compose up -d
 ```
