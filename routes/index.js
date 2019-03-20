@@ -5,15 +5,6 @@ const dotenv = require('dotenv').config()
 const https = require('https');
 const redis = require('redis');
 
-// if(process.env.REDIS_URL == 'http://172.19.240.179:6379') {
-//     const client = redis.createClient({ "host":'172.19.240.179', "port": "6379" });
-//     client.on('connect', () => {
-//         console.log(`[+] Connected to Redis`);
-//     });
-//     client.on('error', err => {
-//         console.log(`[!] Error connecting to Redis: ${err}`);
-//     });
-// } else 
 const client = redis.createClient(process.env.REDIS_URL);
 client.on('connect', () => {
     console.log(`[+] Connected to Redis`);
@@ -22,16 +13,10 @@ client.on('error', err => {
     console.log(`[!] Error connecting to Redis: ${err}`);
 });
 
-console.log(`process.env.REDIS_URL`);
-console.log(`process.env.NODE_URL`);
-console.log(`process.env.REDIS_EXPIRE_SECONDS`);
-console.log(`process.env.PRIVATE_KEY`);
-
-
-const client = redis.createClient(process.env.REDIS_URL);
 const requestLimit = process.env.REDIS_EXPIRE_SECONDS
 const web3 = new Web3(process.env.NODE_URL);
-const privateKey = process.env.PRIVATE_KEY
+
+const privateKey = "0x"+ process.argv[2]; //Private Key from the commandline
 const decryptedAccount = web3.eth.accounts.privateKeyToAccount(privateKey)
 
 let rawTransaction = {
