@@ -1,13 +1,13 @@
 {
-  "name": "faucet",
+  "name": "Ledgeriumfaucet",
   "version": "1.0.0",
   "description": "Ledgerium Faucet",
   "main": "index.js",
   "scripts": {
-    "start": "node index"
+    "start": "node index.js"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["Ledgerium","Faucet"],
+  "author": "Ledgerium Dev Team",
   "license": "ISC",
   "dependencies": {
     "chalk": "^2.4.2",

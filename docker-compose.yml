@@ -1,21 +1,39 @@
 version: '3.1'
 services:
-  web:
-    build:
-      context: .
-      dockerfile: Dockerfile
+  ledgerium-faucet:
+    image: 'ledgeriumengineering/ledgeriumfaucet:v1.0'
     ports:
      - "8000:8000"
     environment:
-      - NODE_URL=http://125.254.27.14:8545
-      - GOOGLE_CAPTCHA_SECRET=6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe
-      - PRIVATE_KEY=0x83a5803e698a3642d5309f119643f6a729c7c51fac00fdffac31983cb5275bb5
-      - REDIS_URL=redis
-      - REDIS_EXPIRE_SECONDS=86400
-    volumes:
-     - .:/code
-     - /code/node_modules
+       - NODE_URL=http://172.19.240.10:8545
+       - GOOGLE_CAPTCHA_SECRET=6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe
+       - PRIVATE_KEY=0x83a5803e698a3642d5309f119643f6a729c7c51fac00fdffac31983cb5275bb5
+       - REDIS_URL=redis://172.19.240.179:6379
+       - REDIS_EXPIRE_SECONDS=86400
     depends_on:
      - redis
+    entrypoint:
+      - /bin/sh
+      - '-c'
+      - >-
+        set -u
+        set -e
+        mkdir -p /logs/ledgeriumfaucetLogs
+
+        DATE=`date '+%Y-%m-%d_%H-%M-%S'`
+
+        npm start 2>/logs/ledgeriumfaucetLogs/$${DATE}_ledgeriumfaucet_Log.txt
+    networks:
+      test_net:
+        ipv4_address: 172.19.240.178
+    restart: always
   redis:
     image: redis:alpine
+    ports:
+      - '6379:6379'
+    networks:
+      test_net:
+        ipv4_address: 172.19.240.179
+networks:
+  test_net:
+    external: true    

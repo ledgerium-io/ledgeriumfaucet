@@ -1,19 +1,19 @@
-FROM node:latest
+FROM mhart/alpine-node:8
 
-# Create app directory
-WORKDIR /usr/src/app
+RUN apk add --no-cache --virtual .build-deps \
+        git \
+        bash \
+        vim \
+        python \
+        make \
+        g++
 
-# Install app dependencies
-# A wildcard is used to ensure both package.json AND package-lock.json are copied
-# where available (npm@5+)
-COPY package*.json ./
+RUN mkdir -p /ledgerium \
+    && cd /ledgerium \
+    && git clone -b master https://github.com/ledgerium/ledgeriumfaucet.git
 
+# to be removed in the future
+WORKDIR /ledgerium/ledgeriumfaucet/
 RUN npm install
-# If you are building your code for production
-# RUN npm ci --only=production
 
-# Bundle app source
-COPY . .
-
-EXPOSE 8000
-CMD [ "npm", "start" ]
+ENTRYPOINT ["tail", "-f", "/dev/null"]
