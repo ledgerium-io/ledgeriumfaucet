@@ -9,10 +9,9 @@ const port = process.env.PORT || 8000;
 const server = app.listen(port, () => {
   const io = module.exports = socket(server);
   console.log(`[+] Listening on port: ${chalk.green(port)}`)
-  
   console.log(`${process.env.REDIS_URL}`);
+  console.log("REDIS_URL", process.env.REDIS_URL);
   console.log(`${process.env.NODE_URL}`);
-  console.log(`${process.env.REDIS_EXPIRE_SECONDS}`);
   console.log(`${process.argv[2]}`);
 
   const router = require('./routes/');

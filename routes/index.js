@@ -1,7 +1,6 @@
 const Web3 = require('web3')
 const express = require('express')
 const router = express.Router()
-const dotenv = require('dotenv').config()
 const https = require('https');
 const redis = require('redis');
 
@@ -20,7 +19,7 @@ const privateKey = "0x"+ process.argv[2]; //Private Key from the commandline
 const decryptedAccount = web3.eth.accounts.privateKeyToAccount(privateKey)
 
 let rawTransaction = {
-    "to": "0xF232A4BF183cF17D09Bea23e19CEfF58Ad9dbFED",
+    "to": "",
     "value": web3.utils.toHex(web3.utils.toWei("3", "ether")),
     "gas": '21000',
     "data": ''
