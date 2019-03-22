@@ -61,14 +61,13 @@ echo.>.env
 ```
 Open the `.env` file in any text editor and insert the following
 ```
-PRIVATE_KEY=0x0000000000000000000000000000000000000000
 CAPTCHA_SECRET=6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe
 REDIS_URL=redis://127.0.0.1:6379
 NODE_URL=http://125.254.27.14:8545
 REDIS_EXPIRE_SECONDS=60
+REQUEST_LIMIT
 ```
 
-* `PRIVATE_KEY` -> Private key of the address you want to use to send out funds
 
 * `GOOGLE_CAPTCHA_SECRET` -> Google Captcha secret key, the one above is public for local testing only
 
@@ -77,6 +76,8 @@ REDIS_EXPIRE_SECONDS=60
 * `NODE_URL` -> Ledgerium node address and port
 
 * `REDIS_EXPIRE_SECONDS` -> Limit (in seconds) how long a user must wait to receive more XLG
+
+* `REQUEST_LIMIT` -> Limit how many tokens a user can request per limit time cycle
 
 
 
@@ -90,9 +91,13 @@ npm install
 ## Locally
 
 To run the faucet, make sure your currently in the `ledgeriumfaucet` directory
-
+PRIVATE_KEY=0x
 ```
-node index
+node index [private key]
+```
+Example:
+```
+node index 29cf428305336e251c117394b0a327b55604230affb888885d871763cf7fe43d
 ```
 
 ## Docker Container (optional)
