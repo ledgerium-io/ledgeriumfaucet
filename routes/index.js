@@ -162,7 +162,7 @@ function checkLimit(request, response, next) {
                 if(result.amount+amount > process.env.REQUEST_LIMIT) {
                    return response.send({
                         success: false,
-                        message: `Requesting ${amount} more will put you over the limit. <br> Requests: ${result.amount}/${process.env.REQUEST_LIMIT} <br>Limit expires in ${timeLeft(result.timestamp)}`
+                        message: `Requesting ${amount} more will put you over the limit. <br> <b>Requests:</b> ${result.amount}/${process.env.REQUEST_LIMIT} <br><b>Limit expires</b> in ${timeLeft(result.timestamp)}`
                     })
                 } else {
                     if(result.amount>0) redis.amount = result.amount
