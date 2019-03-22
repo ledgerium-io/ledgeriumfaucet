@@ -159,7 +159,7 @@ function checkLimit(request, response, next) {
             if(!result) return next()
             result = JSON.parse(result)
             if(result.address == address) {
-                if(result.amount+amount > 3) {
+                if(result.amount+amount > process.env.REQUEST_LIMIT) {
                    return response.send({
                         success: false,
                         message: `Requesting ${amount} more will put you over the limit. <br> Requests: ${result.amount}/${process.env.REQUEST_LIMIT} <br>Limit expires in ${timeLeft(result.timestamp)}`
