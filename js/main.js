@@ -54,7 +54,7 @@ document.querySelector("#requestTokenForm").addEventListener("submit", function(
   .then(json => {
     console.log(json.data)
     if(json.data.success) {
-      toastr.info('XLGs were transfered to your account', 'Transaction Sent');
+      toastr.info(`${json.data.message}`, 'Transaction Sent');
       document.getElementById("txUrl").innerHTML = `<a href="transaction/${json.data.receipt.transactionHash}">View Transaction<a>`
       getXLGBalance(json.data.message.to)
       document.getElementById("requestBtn").disabled = true

@@ -57,7 +57,7 @@ function makeTransaction(request, response, next) {
         const { address, amount } = request.body
         if(!web3.utils.isAddress(address)) return response.send({success: false, message: 'Please enter a valid address'})
         if(typeof amount !== "number")return response.send({success: false, message: 'Amount must be a valid integer'})
-        if(amount < 0 || amount > 3) return response.send({success: false, message: 'Request must be between 0 and 3 XLG'})
+        if(amount < 0 || amount > process.env.REQUEST_LIMIT) return response.send({success: false, message: `Request must be between 0 and {process.env.REQUEST_LIMIT} XLG`})
 
         rawTransaction.to = address
         rawTransaction.value = web3.utils.toHex(web3.utils.toWei(amount.toString(), "ether"))
@@ -94,7 +94,7 @@ function makeTransaction(request, response, next) {
                         client.set(address.toLowerCase(), JSON.stringify({address: receipt.to, amount: netAmount, timestamp: Date.now()}), 'EX', requestLimit)
                         return response.send({
                             success: true,
-                            message: `You have successfuly been sent ${amount} XLG`,
+                            message: `You have successfuly been sent ${amount} XLG <br> Requested: ${netAmount}/${process.env.REQUEST_LIMIT}`,
                             receipt
                         })
                     })
@@ -167,7 +167,7 @@ function checkLimit(request, response, next) {
                 if(result.amount+amount > 3) {
                    return response.send({
                         success: false,
-                        message: `You have already recieved ${result.amount}XLG, requesting ${amount} more will put you over the limit. Limit expires in ${timeLeft(result.timestamp)}`
+                        message: `Requesting ${amount} more will put you over the limit. <br> Requests: ${result.amount}/${process.env.REQUEST_LIMIT} <br>Limit expires in ${timeLeft(result.timestamp)}`
                     })
                 } else {
                     if(result.amount>0) redis.amount = result.amount
