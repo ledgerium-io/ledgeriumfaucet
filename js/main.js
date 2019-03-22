@@ -2,6 +2,7 @@ let web3;
 axios.get('/q')
   .then(response => {
     web3 = new Web3(new Web3.providers.HttpProvider(response.data.web3));
+    document.getElementById('requestLimit').innerText = `Request limit: ${response.data.limit} XLG`
   })
   .catch(error => {
     console.log(error)

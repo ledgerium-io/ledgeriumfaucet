@@ -48,7 +48,7 @@ router.get('/transaction/:tx', (request, response) => {
 })
 
 router.get('/q', (request, response) => {
-    response.send({web3: process.env.NODE_URL})
+    response.send({web3: process.env.NODE_URL, limit: process.env.REQUEST_LIMIT})
 })
 
 router.post('/', verifyRecaptcha, checkLimit, makeTransaction, (request, response) => {})
