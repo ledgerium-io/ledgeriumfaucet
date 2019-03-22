@@ -5,7 +5,7 @@ const chalk = require('chalk');
 const app = express();
 const cors = require('cors');
 
-const port = process.env.PORT || 8000;
+const port = process.env.PORT || 5577;
 const server = app.listen(port, () => {
   const io = module.exports = socket(server);
   console.log(`[+] Listening on port: ${chalk.green(port)}`)
