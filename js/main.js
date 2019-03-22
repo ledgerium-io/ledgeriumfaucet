@@ -34,6 +34,11 @@ function enableRequest() {
   document.getElementById("requestBtn").disabled = false
 }
 
+amount = 1
+document.querySelector("#amountSelector").onchange = function (e) {
+  amount = parseInt(e.target.value)
+}
+  
 
 document.querySelector("#requestTokenForm").addEventListener("submit", function(e){
   e.preventDefault();
@@ -43,13 +48,14 @@ document.querySelector("#requestTokenForm").addEventListener("submit", function(
     return;
   }
   axios.post('/', {
-    address
+    address,
+    amount
   })
   .then(json => {
     console.log(json.data)
     if(json.data.success) {
       toastr.info('XLGs were transfered to your account', 'Transaction Sent');
-      document.getElementById("txUrl").innerHTML = `<a href="transaction/${json.data.message.transactionHash}">View Transaction<a>`
+      document.getElementById("txUrl").innerHTML = `<a href="transaction/${json.data.receipt.transactionHash}">View Transaction<a>`
       getXLGBalance(json.data.message.to)
       document.getElementById("requestBtn").disabled = true
 

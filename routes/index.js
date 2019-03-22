@@ -21,7 +21,7 @@ console.log(decryptedAccount)
 
 let rawTransaction = {
     "to": "",
-    "value": web3.utils.toHex(web3.utils.toWei("3", "ether")),
+    "value": "1",
     "gas": '21000',
     "data": ''
 };
@@ -54,8 +54,14 @@ router.get('/q', (request, response) => {
 router.post('/', verifyRecaptcha, checkLimit, makeTransaction, (request, response) => {})
 
 function makeTransaction(request, response, next) {
-        const { address } = request.body
+        const { address, amount } = request.body
+        if(!web3.utils.isAddress(address)) return response.send({success: false, message: 'Please enter a valid address'})
+        if(typeof amount !== "number")return response.send({success: false, message: 'Amount must be a valid integer'})
+        if(amount < 0 || amount > 3) return response.send({success: false, message: 'Request must be between 0 and 3 XLG'})
+
         rawTransaction.to = address
+        rawTransaction.value = web3.utils.toHex(web3.utils.toWei(amount.toString(), "ether"))
+
         web3.eth.accounts.signTransaction(rawTransaction, decryptedAccount.privateKey, (err, res) => {
             if (err) { 
                 console.log(err)
@@ -72,25 +78,28 @@ function makeTransaction(request, response, next) {
                             console.log(error); 
                             return response.send({
                                 success: false,
-                                message: `Server issue: ${err}`
+                                message: `Server issue: ${error}`
                             })  
                         }
-
                         if (success) {
                             console.log(`[+] Sent successfully`)
                         }
                     })
                     .then(receipt => {
-                        response.send({
-                            success: true,
-                            message: receipt
-                        })
                         rawTransaction.nonce++
+                        netAmount = amount
+                        if(redis.amount) netAmount += redis.amount
                         console.log(`[+] Recieved receipt`)
-                        client.set(address.toLowerCase(), receipt.to, 'EX', requestLimit);
+                        console.log(`Amount: ${amount} Redis Amount: ${redis.amount} Total: ${netAmount}`)
+                        client.set(address.toLowerCase(), JSON.stringify({address: receipt.to, amount: netAmount, timestamp: Date.now()}), 'EX', requestLimit)
+                        return response.send({
+                            success: true,
+                            message: `You have successfuly been sent ${amount} XLG`,
+                            receipt
+                        })
                     })
-                    .catch(error => {
-                        response.send({
+                     .catch(error => {
+                        return response.send({
                             success: false,
                             message: error
                         })
@@ -120,23 +129,50 @@ function verifyRecaptcha(request, response, next) {
     });
 }
 
+function secondsToString(uptime) {
+    if(uptime > 86400) {
+      uptime = uptime/86400;
+      return (uptime.toFixed(3) + " days");
+    } else if (uptime > 3600) {
+      uptime = uptime/3600;
+      return (uptime.toFixed(2) + " hours")
+    } else if (uptime > 60) {
+      uptime = uptime/60;
+      return (uptime.toFixed(2) + " minutes")
+    } else {
+      return(uptime.toFixed(0) + " seconds")
+    }
+  }
+
+function timeLeft(timestamp) {
+    const timeNeeded = process.env.REDIS_EXPIRE_SECONDS*1000
+    const timePassed = (Date.now() - timestamp)
+    const timeLeft = timeNeeded - timePassed
+    return secondsToString(timeLeft/1000)
+
+
+}
 
 function checkLimit(request, response, next) {
-    const {
-        address
-    } = request.body
+    const { amount, address } = request.body
     client.get(address, function(error, result) {
         if (error) {
             console.log(error);
             throw error;
         } else {
-            if (result == address) {
-                response.send({
-                    success: false,
-                    message: "You have already recieved in the last 24 hours"
-                })
-            } else {
-                next()
+            if(!result) return next()
+            result = JSON.parse(result)
+            console.log(result)
+            if(result.address == address) {
+                if(result.amount+amount > 3) {
+                   return response.send({
+                        success: false,
+                        message: `You have already recieved ${result.amount}XLG, requesting ${amount} more will put you over the limit. Limit expires in ${timeLeft(result.timestamp)}`
+                    })
+                } else {
+                    if(result.amount>0) redis.amount = result.amount
+                    next()
+                }
             }
         }
     })
