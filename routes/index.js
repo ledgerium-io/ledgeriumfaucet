@@ -17,7 +17,6 @@ const web3 = new Web3(process.env.NODE_URL);
 
 const privateKey = "0x"+ process.argv[2]; //Private Key from the commandline
 const decryptedAccount = web3.eth.accounts.privateKeyToAccount(privateKey)
-console.log(decryptedAccount)
 
 let rawTransaction = {
     "to": "",
@@ -90,7 +89,6 @@ function makeTransaction(request, response, next) {
                         netAmount = amount
                         if(redis.amount) netAmount += redis.amount
                         console.log(`[+] Recieved receipt`)
-                        console.log(`Amount: ${amount} Redis Amount: ${redis.amount} Total: ${netAmount}`)
                         client.set(address.toLowerCase(), JSON.stringify({address: receipt.to, amount: netAmount, timestamp: Date.now()}), 'EX', requestLimit)
                         return response.send({
                             success: true,
@@ -149,8 +147,6 @@ function timeLeft(timestamp) {
     const timePassed = (Date.now() - timestamp)
     const timeLeft = timeNeeded - timePassed
     return secondsToString(timeLeft/1000)
-
-
 }
 
 function checkLimit(request, response, next) {
@@ -162,7 +158,6 @@ function checkLimit(request, response, next) {
         } else {
             if(!result) return next()
             result = JSON.parse(result)
-            console.log(result)
             if(result.address == address) {
                 if(result.amount+amount > 3) {
                    return response.send({
