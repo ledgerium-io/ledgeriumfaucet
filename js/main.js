@@ -1,4 +1,12 @@
-const web3 = new Web3(new Web3.providers.HttpProvider('http://125.254.27.14:8545'));
+let web3; 
+axios.get('/q')
+  .then(response => {
+    web3 = new Web3(new Web3.providers.HttpProvider(response.data.web3));
+  })
+  .catch(error => {
+    console.log(error)
+  })
+
 
 const inputAddress= document.querySelector("#address");
 inputAddress.addEventListener("input", alertAddress);
@@ -34,7 +42,7 @@ document.querySelector("#requestTokenForm").addEventListener("submit", function(
     toastr.error("Please enter a valid address", "Invalid XLG Address");
     return;
   }
-  axios.post('http://localhost:8000/', {
+  axios.post('/', {
     address
   })
   .then(json => {

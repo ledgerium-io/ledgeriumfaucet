@@ -17,6 +17,7 @@ const web3 = new Web3(process.env.NODE_URL);
 
 const privateKey = "0x"+ process.argv[2]; //Private Key from the commandline
 const decryptedAccount = web3.eth.accounts.privateKeyToAccount(privateKey)
+console.log(decryptedAccount)
 
 let rawTransaction = {
     "to": "",
@@ -33,8 +34,21 @@ router.get('/transaction/:tx', (request, response) => {
     const { tx } = request.params
     web3.eth.getTransaction(tx)
         .then(tx => {
-            response.send(tx)
+            response.send({
+                success: true,
+                tx
+            })
         })
+        .catch(err => {
+            response.send({
+                success: false,
+                message: "Could not find transaction ID"
+            })
+        })
+})
+
+router.get('/q', (request, response) => {
+    response.send({web3: process.env.NODE_URL})
 })
 
 router.post('/', verifyRecaptcha, checkLimit, makeTransaction, (request, response) => {})
@@ -43,12 +57,25 @@ function makeTransaction(request, response, next) {
         const { address } = request.body
         rawTransaction.to = address
         web3.eth.accounts.signTransaction(rawTransaction, decryptedAccount.privateKey, (err, res) => {
-            if (err) console.log(err)
+            if (err) { 
+                console.log(err)
+                return response.send({
+                    success: false,
+                    message: `Server issue: ${err}`
+                })   
+            }
             if (res) {
                 console.log("[+] Signed successfully")
                 signedTransaction = res.rawTransaction
                 web3.eth.sendSignedTransaction(signedTransaction, (error, success) => {
-                        if (error) return console.log(error)
+                        if (error) { 
+                            console.log(error); 
+                            return response.send({
+                                success: false,
+                                message: `Server issue: ${err}`
+                            })  
+                        }
+
                         if (success) {
                             console.log(`[+] Sent successfully`)
                         }

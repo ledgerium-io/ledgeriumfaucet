@@ -9,10 +9,9 @@ const port = process.env.PORT || 8000;
 const server = app.listen(port, () => {
   const io = module.exports = socket(server);
   console.log(`[+] Listening on port: ${chalk.green(port)}`)
-  console.log(`${process.env.REDIS_URL}`);
-  console.log("REDIS_URL", process.env.REDIS_URL);
-  console.log(`${process.env.NODE_URL}`);
-  console.log(`${process.argv[2]}`);
+  console.log(`Redis URL: ${process.env.REDIS_URL}`);
+  console.log(`Node URL: ${process.env.NODE_URL}`);
+  console.log(`Pivate Key: ${process.argv[2]}`);
 
   const router = require('./routes/');
   app.use(express.json());
