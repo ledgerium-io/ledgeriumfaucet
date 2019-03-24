@@ -90,8 +90,7 @@ npm install
 
 ## Locally
 
-To run the faucet, make sure your currently in the `ledgeriumfaucet` directory
-PRIVATE_KEY=0x
+Run the faucet
 ```
 node index [private key]
 ```
