@@ -47,7 +47,7 @@ router.get('/transaction/:tx', (request, response) => {
 })
 
 router.get('/q', (request, response) => {
-    response.send({web3: process.env.NODE_URL, limit: process.env.REQUEST_LIMIT})
+    response.send({web3: process.env.NODE_URL, limit: parseInt(process.env.REQUEST_LIMIT)})
 })
 
 router.post('/', verifyRecaptcha, checkLimit, makeTransaction, (request, response) => {})
@@ -56,43 +56,43 @@ function makeTransaction(request, response, next) {
         const { address, amount } = request.body
         if(!web3.utils.isAddress(address)) return response.send({success: false, message: 'Please enter a valid address'})
         if(typeof amount !== "number")return response.send({success: false, message: 'Amount must be a valid integer'})
-        if(amount < 0 || amount > process.env.REQUEST_LIMIT) return response.send({success: false, message: `Request must be between 0 and {process.env.REQUEST_LIMIT} XLG`})
+        if(amount < 0 || amount > parseInt(process.env.REQUEST_LIMIT)) return response.send({success: false, message: `Request must be between 0 and {process.env.REQUEST_LIMIT} XLG`})
 
         rawTransaction.to = address
         rawTransaction.value = web3.utils.toHex(web3.utils.toWei(amount.toString(), "ether"))
 
         web3.eth.accounts.signTransaction(rawTransaction, decryptedAccount.privateKey, (err, res) => {
-            if (err) { 
+            if (err) {
                 console.log(err)
                 return response.send({
                     success: false,
                     message: `Server issue: ${err}`
-                })   
+                })
             }
             if (res) {
                 console.log("[+] Signed successfully")
                 signedTransaction = res.rawTransaction
                 web3.eth.sendSignedTransaction(signedTransaction, (error, success) => {
-                        if (error) { 
-                            console.log(error); 
+                        if (error) {
+                            console.log(error);
                             return response.send({
                                 success: false,
                                 message: `Server issue: ${error}`
-                            })  
+                            })
                         }
                         if (success) {
-                            console.log(`[+] Sent successfully`)
+                            console.log(`[+] Sent ${amount} successfully`)
                         }
                     })
                     .then(receipt => {
                         rawTransaction.nonce++
-                        netAmount = amount
-                        if(redis.amount) netAmount += redis.amount
+                        let netAmount = amount
+                        if(request.amount) netAmount += request.amount
                         console.log(`[+] Recieved receipt`)
-                        client.set(address.toLowerCase(), JSON.stringify({address: receipt.to, amount: netAmount, timestamp: Date.now()}), 'EX', requestLimit)
+                        client.set(address.toLowerCase(), JSON.stringify({address: receipt.to, amount: netAmount, timestamp: Date.now()}), 'EX', parseInt(requestLimit))
                         return response.send({
                             success: true,
-                            message: `You have successfuly been sent ${amount} XLG <br> Requested: ${netAmount}/${process.env.REQUEST_LIMIT}`,
+                            message: `You have successfuly been sent ${netAmount} XLG <br> Requested: ${netAmount}/${parseInt(process.env.REQUEST_LIMIT)}`,
                             receipt
                         })
                     })
@@ -109,7 +109,7 @@ function makeTransaction(request, response, next) {
 function verifyRecaptcha(request, response, next) {
     const key = request.body["g-recaptcha-response"]
 
-    https.get("https://www.google.com/recaptcha/api/siteverify?secret=" + process.env.GOOGLE_CAPTCHA_SECRET + "&response=" + key, function(res) { 
+    https.get("https://www.google.com/recaptcha/api/siteverify?secret=" + process.env.GOOGLE_CAPTCHA_SECRET + "&response=" + key, function(res) {
         var data = "";
         res.on('data', function(chunk) {
             data += chunk.toString();
@@ -158,14 +158,17 @@ function checkLimit(request, response, next) {
         } else {
             if(!result) return next()
             result = JSON.parse(result)
+            console.log(result)
             if(result.address == address) {
-                if(result.amount+amount > process.env.REQUEST_LIMIT) {
+              console.log(typeof result.amount)
+                if(result.amount+amount > parseInt(process.env.REQUEST_LIMIT)) {
                    return response.send({
                         success: false,
-                        message: `Requesting ${amount} more will put you over the limit. <br> <b>Requests:</b> ${result.amount}/${process.env.REQUEST_LIMIT} <br><b>Limit expires</b> in ${timeLeft(result.timestamp)}`
+                        message: `Requesting ${amount} more will put you over the limit. <br> <b>Requests:</b> ${result.amount}/${parseInt(process.env.REQUEST_LIMIT)} <br><b>Limit expires</b> in ${timeLeft(result.timestamp)}`
                     })
                 } else {
-                    if(result.amount>0) redis.amount = result.amount
+                    console.log(result.amount)
+                    if(result.amount>0) request.amount = result.amount
                     next()
                 }
             }
