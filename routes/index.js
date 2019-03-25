@@ -158,16 +158,13 @@ function checkLimit(request, response, next) {
         } else {
             if(!result) return next()
             result = JSON.parse(result)
-            console.log(result)
             if(result.address == address) {
-              console.log(typeof result.amount)
                 if(result.amount+amount > parseInt(process.env.REQUEST_LIMIT)) {
                    return response.send({
                         success: false,
                         message: `Requesting ${amount} more will put you over the limit. <br> <b>Requests:</b> ${result.amount}/${parseInt(process.env.REQUEST_LIMIT)} <br><b>Limit expires</b> in ${timeLeft(result.timestamp)}`
                     })
                 } else {
-                    console.log(result.amount)
                     if(result.amount>0) request.amount = result.amount
                     next()
                 }
