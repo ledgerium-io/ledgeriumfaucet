@@ -178,6 +178,12 @@ function checkLimit(request, response, next) {
             if(!result) return next()
             result = JSON.parse(result)
             if(result.address == address) {
+                if(result.amount == process.env.REQUEST_LIMIT) {
+                    return response.send({
+                        success: false,
+                        message: `You have reached the daily limit. <br> <b>Requests:</b> ${result.amount}/${parseInt(process.env.REQUEST_LIMIT)} <br><b>Limit expires</b> in ${timeLeft(result.timestamp)}`
+                    })                   
+                }
                 if(result.amount+amount > parseInt(process.env.REQUEST_LIMIT)) {
                    return response.send({
                         success: false,
