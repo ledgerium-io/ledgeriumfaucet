@@ -12,7 +12,6 @@ client.on('error', err => {
     console.log(`[!] Error connecting to Redis: ${err}`);
 });
 
-orderQue = []
 
 const requestLimit = process.env.REDIS_EXPIRE_SECONDS
 const web3 = new Web3(process.env.NODE_URL);
