@@ -44,10 +44,12 @@ document.querySelector("#amountSelector").onchange = function (e) {
 document.querySelector("#requestTokenForm").addEventListener("submit", function(e){
   e.preventDefault();
   const address = e.target.elements[0].value
+  document.getElementById("requestBtn").disabled = true
   if (!web3.isAddress(address)) {
     toastr.error("Please enter a valid address", "Invalid XLG Address");
     return;
   }
+  document.getElementById("requestBtn").innerHTML = '<div class="spinner-border" role="status"></div>'
   axios.post('/', {
     address,
     amount
@@ -57,19 +59,21 @@ document.querySelector("#requestTokenForm").addEventListener("submit", function(
     if(json.data.success) {
       toastr.info(`${json.data.message}`, 'Transaction Sent');
       document.getElementById("txUrl").innerHTML = `<a href="transaction/${json.data.receipt.transactionHash}">View Transaction<a>`
+      document.getElementById("requestBtn").disabled = false
+      document.getElementById("requestBtn").innerHTML = "Submit"
       getXLGBalance(json.data.message.to)
-      document.getElementById("requestBtn").disabled = true
+
 
     }
     if(!json.data.success) {
       toastr.error(json.data.message, "Something went wrong");
       document.getElementById("requestBtn").disabled = true
+      document.getElementById("requestBtn").innerHTML = "Submit"
+      document.getElementById("requestBtn").disabled = false
     }
   })   
   .catch(console.log)
 });
-
-
 
 
 

@@ -12,6 +12,8 @@ client.on('error', err => {
     console.log(`[!] Error connecting to Redis: ${err}`);
 });
 
+orderQue = []
+
 const requestLimit = process.env.REDIS_EXPIRE_SECONDS
 const web3 = new Web3(process.env.NODE_URL);
 
@@ -52,11 +54,24 @@ router.get('/q', (request, response) => {
 
 router.post('/', verifyRecaptcha, checkLimit, makeTransaction, (request, response) => {})
 
+makingAnOrder = false
+
 function makeTransaction(request, response, next) {
+        if(makingAnOrder) return response.send({success: false, message: 'Order que is full, please try again soon'})
+        makingAnOrder = true
         const { address, amount } = request.body
-        if(!web3.utils.isAddress(address)) return response.send({success: false, message: 'Please enter a valid address'})
-        if(typeof amount !== "number")return response.send({success: false, message: 'Amount must be a valid integer'})
-        if(amount < 0 || amount > parseInt(process.env.REQUEST_LIMIT)) return response.send({success: false, message: `Request must be between 0 and {process.env.REQUEST_LIMIT} XLG`})
+        if(!web3.utils.isAddress(address)) {
+            makingAnOrder = false
+            return response.send({success: false, message: 'Please enter a valid address'})
+        } 
+        if(typeof amount !== "number") {
+            makingAnOrder = false
+            return response.send({success: false, message: 'Amount must be a valid integer'})
+        }
+        if(amount < 0 || amount > parseInt(process.env.REQUEST_LIMIT)) {
+            makingAnOrder = false
+            return response.send({success: false, message: `Request must be between 0 and {process.env.REQUEST_LIMIT} XLG`})
+        } 
 
         rawTransaction.to = address
         rawTransaction.value = web3.utils.toHex(web3.utils.toWei(amount.toString(), "ether"))
@@ -64,6 +79,7 @@ function makeTransaction(request, response, next) {
         web3.eth.accounts.signTransaction(rawTransaction, decryptedAccount.privateKey, (err, res) => {
             if (err) {
                 console.log(err)
+                makingAnOrder = false
                 return response.send({
                     success: false,
                     message: `Server issue: ${err}`
@@ -75,6 +91,7 @@ function makeTransaction(request, response, next) {
                 web3.eth.sendSignedTransaction(signedTransaction, (error, success) => {
                         if (error) {
                             console.log(error);
+                            makingAnOrder = false
                             return response.send({
                                 success: false,
                                 message: `Server issue: ${error}`
@@ -86,6 +103,7 @@ function makeTransaction(request, response, next) {
                     })
                     .then(receipt => {
                         rawTransaction.nonce++
+                        makingAnOrder = false
                         let netAmount = amount
                         if(request.amount) netAmount += request.amount
                         console.log(`[+] Recieved receipt`)
@@ -97,6 +115,7 @@ function makeTransaction(request, response, next) {
                         })
                     })
                      .catch(error => {
+                        makingAnOrder = false
                         return response.send({
                             success: false,
                             message: error

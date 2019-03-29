@@ -4,9 +4,11 @@
 <head>
 	<meta charset="UTF-8">
 	<title>XLG Testnet Faucet</title> 
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
-	<script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">	<script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
 	<script src='https://www.google.com/recaptcha/api.js'></script>
+	<script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
 	<link rel="stylesheet" type="text/css" href="main.css">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 	<script src='https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js'></script>
@@ -22,6 +24,7 @@
 			<h2 class="title" id="pageTitle">Ledgerium Faucet</h2> 
 			<div class="card" style="max-width:600px;">
 				<div class="card-block">
+					<br>
 					<form class="form-register" action="/" method="post" id="requestTokenForm">
 						<span style="margin:10px"></span><input type="text" id="address" name="address" placeholder="address" value="" /><span id="addressCheck" style="margin:10px"></span>
 						<br/>
@@ -38,11 +41,12 @@
 					<br>
                     <div class="g-recaptcha" data-sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI" data-callback="enableRequest"></div> 
 					<br>
-					Request <select id="amountSelector">
+					  </div>
+					Request <select id="amountSelector" style="width:25%">
 						<option value=1>1</option>
 						<option value=2>2</option>
 						<option value=3>3</option>
-					  </select> XLG <br><button type="submit" class="btn btn-secondary" id="requestBtn">Submit</button>
+					  </select> XLG <br><button style="width:25%" type="submit" class="btn btn-secondary" id="requestBtn">Submit</button>
 					<a id="txUrl" target="_blank" style="display: block;margin-top: 10px;"></a>
 				</form>
 			</div>
