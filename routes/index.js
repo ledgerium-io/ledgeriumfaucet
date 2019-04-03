@@ -3,7 +3,7 @@ const express = require('express')
 const router = express.Router()
 const https = require('https');
 const redis = require('redis');
-
+connected = false
 const client = redis.createClient(process.env.REDIS_URL);
 client.on('connect', () => {
     console.log(`[+] Connected to Redis`);
@@ -15,6 +15,16 @@ client.on('error', err => {
 
 const requestLimit = process.env.REDIS_EXPIRE_SECONDS
 const web3 = new Web3(process.env.NODE_URL);
+web3.eth.net.isListening()
+    .then( (response) => {
+        if(response) {
+            console.log('[+] Connected to Ledgerium Node')
+            connected = true
+        } else {
+            console.log(`[!] Error connecting to Ledgerium Node`);
+        }
+    })
+    .catch( error => {console.log('[!] Error connecting to Ledgerium Node')})
 
 const privateKey = "0x"+ process.argv[2]; //Private Key from the commandline
 const decryptedAccount = web3.eth.accounts.privateKeyToAccount(privateKey)
@@ -51,7 +61,7 @@ router.get('/q', (request, response) => {
     response.send({web3: process.env.NODE_URL, limit: parseInt(process.env.REQUEST_LIMIT)})
 })
 
-router.post('/', verifyRecaptcha, checkLimit, makeTransaction, (request, response) => {})
+router.post('/', checkNodeStatus, verifyRecaptcha, checkLimit, makeTransaction, (request, response) => {})
 
 makingAnOrder = false
 
@@ -167,13 +177,19 @@ function timeLeft(timestamp) {
     return secondsToString(timeLeft/1000)
 }
 
-function checkLimit(request, response, next) {
-    if(!web3.isConnected()) {
-        return {
+function checkNodeStatus(request, response, next) {
+    if(connected) {
+        return next()
+    } else {
+        return response.send({
             success: false,
-            message: "Internal Server Error: Server is not connected to the node"
-        }
-    } 
+            message: "Server Error: Not connected to Ledgerium node"
+        })
+    }
+}
+
+
+function checkLimit(request, response, next) {
     const { amount, address } = request.body
     client.get(address, function(error, result) {
         if (error) {
