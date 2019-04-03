@@ -168,6 +168,12 @@ function timeLeft(timestamp) {
 }
 
 function checkLimit(request, response, next) {
+    if(!web3.isConnected()) {
+        return {
+            success: false,
+            message: "Internal Server Error: Server is not connected to the node"
+        }
+    } 
     const { amount, address } = request.body
     client.get(address, function(error, result) {
         if (error) {
