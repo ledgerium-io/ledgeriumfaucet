@@ -1,4 +1,4 @@
-console.log('Version: 1.337')
+console.log('Version: 1.338')
 let web3; 
 axios.get('/q')
   .then(response => {
