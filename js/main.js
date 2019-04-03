@@ -1,7 +1,9 @@
+console.log('Version: 1.337')
 let web3; 
 axios.get('/q')
   .then(response => {
     web3 = new Web3(new Web3.providers.HttpProvider(response.data.web3));
+    console.log(`Conencted to Web3 (${response.data.web3})`)
     document.getElementById('requestLimit').innerText = `Request limit: ${response.data.limit} XLG`
   })
   .catch(error => {
