@@ -3,7 +3,9 @@ const express = require('express')
 const router = express.Router()
 const https = require('https');
 const redis = require('redis');
-connected = false
+const requestLimit = process.env.REDIS_EXPIRE_SECONDS
+const web3 = new Web3(process.env.NODE_URL);
+
 const client = redis.createClient(process.env.REDIS_URL);
 client.on('connect', () => {
     console.log(`[+] Connected to Redis`);
@@ -12,9 +14,16 @@ client.on('error', err => {
     console.log(`[!] Error connecting to Redis: ${err}`);
 });
 
+connected = false
+makingAnOrder = false
+rawTransaction = {
+    "to": "",
+    "value": "1",
+    "gas": '21000',
+    "data": ''
+};
 
-const requestLimit = process.env.REDIS_EXPIRE_SECONDS
-const web3 = new Web3(process.env.NODE_URL);
+
 web3.eth.net.isListening()
     .then( (response) => {
         if(response) {
@@ -26,15 +35,10 @@ web3.eth.net.isListening()
     })
     .catch( error => {console.log('[!] Error connecting to Ledgerium Node')})
 
-const privateKey = "0x"+ process.argv[2]; //Private Key from the commandline
+const privateKey = "0x"+ process.argv[2];
 const decryptedAccount = web3.eth.accounts.privateKeyToAccount(privateKey)
 
-let rawTransaction = {
-    "to": "",
-    "value": "1",
-    "gas": '21000',
-    "data": ''
-};
+
 
 router.get('/', (request, response) => {
     response.sendFile(__dirname + '/views/index.html');
@@ -63,16 +67,16 @@ router.get('/q', (request, response) => {
 
 router.post('/', checkNodeStatus, verifyRecaptcha, checkLimit, makeTransaction, (request, response) => {})
 
-makingAnOrder = false
-
 function makeTransaction(request, response, next) {
         if(makingAnOrder) return response.send({success: false, message: 'Order que is full, please try again soon'})
+
         makingAnOrder = true
         const { address, amount } = request.body
+
         if(!web3.utils.isAddress(address)) {
             makingAnOrder = false
             return response.send({success: false, message: 'Please enter a valid address'})
-        } 
+        }
         if(typeof amount !== "number") {
             makingAnOrder = false
             return response.send({success: false, message: 'Amount must be a valid integer'})
@@ -80,63 +84,53 @@ function makeTransaction(request, response, next) {
         if(amount < 0 || amount > parseInt(process.env.REQUEST_LIMIT)) {
             makingAnOrder = false
             return response.send({success: false, message: `Request must be between 0 and {process.env.REQUEST_LIMIT} XLG`})
-        } 
+        }
 
         rawTransaction.to = address
         rawTransaction.value = web3.utils.toHex(web3.utils.toWei(amount.toString(), "ether"))
 
-        web3.eth.accounts.signTransaction(rawTransaction, decryptedAccount.privateKey, (err, res) => {
-            if (err) {
-                console.log(err)
-                makingAnOrder = false
-                return response.send({
-                    success: false,
-                    message: `Server issue: ${err}`
-                })
-            }
-            if (res) {
-                console.log("[+] Signed successfully")
-                signedTransaction = res.rawTransaction
-                web3.eth.sendSignedTransaction(signedTransaction, (error, success) => {
-                        if (error) {
-                            console.log(error);
-                            makingAnOrder = false
-                            return response.send({
-                                success: false,
-                                message: `Server issue: ${error}`
-                            })
-                        }
-                        if (success) {
-                            console.log(`[+] Sent ${amount} successfully`)
-                        }
-                    })
-                    .then(receipt => {
-                        rawTransaction.nonce++
-                        makingAnOrder = false
-                        let netAmount = amount
-                        if(request.amount) netAmount += request.amount
-                        console.log(`[+] Recieved receipt`)
-                        client.set(address.toLowerCase(), JSON.stringify({address: receipt.to, amount: netAmount, timestamp: Date.now()}), 'EX', parseInt(requestLimit))
-                        return response.send({
-                            success: true,
-                            message: `You have successfuly been sent ${netAmount} XLG <br> Requested: ${netAmount}/${parseInt(process.env.REQUEST_LIMIT)}`,
-                            receipt
-                        })
-                    })
-                     .catch(error => {
-                        makingAnOrder = false
-                        return response.send({
-                            success: false,
-                            message: error
-                        })
-                    })
-            }
-        });
+        web3.eth.accounts.signTransaction(rawTransaction, decryptedAccount.privateKey)
+        .then(res => {
+          signedTransaction = res.rawTransaction
+            console.log(`[+] Attempting to send ${amount} XLG`)
+            web3.eth.sendSignedTransaction(signedTransaction)
+            .then(receipt => {
+              console.log(`[+] Sent ${amount} XLG successfully`)
+              rawTransaction.nonce++
+              makingAnOrder = false
+              let netAmount = amount
+              if(request.amount) netAmount += request.amount
+              console.log(`[+] Recieved receipt`)
+              client.set(address.toLowerCase(), JSON.stringify({address: receipt.to, amount: netAmount, timestamp: Date.now()}), 'EX', parseInt(requestLimit))
+              return response.send({
+                  success: true,
+                  message: `You have successfuly been sent ${netAmount} XLG <br> Requested: ${netAmount}/${parseInt(process.env.REQUEST_LIMIT)}`,
+                  receipt
+              })
+            })
+            .catch(error => {
+              makingAnOrder = false
+              console.log(`[!] Error: ${error.message}`)
+              return response.send({
+                  success: false,
+                  message: error.message
+              })
+            })
+
+        })
+        .catch(error => {
+          console.log(`[!] Error: ${error.message}`)
+          makingAnOrder = false
+          return response.send({
+              success: false,
+              message: `Server issue: ${error.message}`
+            })
+        })
+
 }
 
 function verifyRecaptcha(request, response, next) {
     const key = request.body["g-recaptcha-response"]
-
     https.get("https://www.google.com/recaptcha/api/siteverify?secret=" + process.env.GOOGLE_CAPTCHA_SECRET + "&response=" + key, function(res) {
         var data = "";
         res.on('data', function(chunk) {
@@ -146,7 +140,7 @@ function verifyRecaptcha(request, response, next) {
             try {
                 next()
             } catch (e) {
-                response.send({
+                return response.send({
                     success: false,
                     message: "Invalid Captcha"
                 })
@@ -203,7 +197,7 @@ function checkLimit(request, response, next) {
                     return response.send({
                         success: false,
                         message: `You have reached the daily limit. <br> <b>Requests:</b> ${result.amount}/${parseInt(process.env.REQUEST_LIMIT)} <br><b>Limit expires</b> in ${timeLeft(result.timestamp)}`
-                    })                   
+                    })
                 }
                 if(result.amount+amount > parseInt(process.env.REQUEST_LIMIT)) {
                    return response.send({
