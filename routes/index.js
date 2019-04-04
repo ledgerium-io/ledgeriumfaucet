@@ -91,7 +91,8 @@ function makeTransaction(request, response, next) {
 
         web3.eth.accounts.signTransaction(rawTransaction, decryptedAccount.privateKey)
         .then(res => {
-          signedTransaction = res.rawTransaction
+            console.log(`[+] Signed transaction successfully`)
+            signedTransaction = res.rawTransaction
             console.log(`[+] Attempting to send ${amount} XLG`)
             web3.eth.sendSignedTransaction(signedTransaction)
             .then(receipt => {
