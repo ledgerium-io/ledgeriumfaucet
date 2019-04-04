@@ -106,7 +106,8 @@ function makeTransaction(request, response, next) {
               return response.send({
                   success: true,
                   message: `You have successfuly been sent ${netAmount} XLG <br> Requested: ${netAmount}/${parseInt(process.env.REQUEST_LIMIT)}`,
-                  receipt
+                  receipt,
+                  amount
               })
             })
             .catch(error => {

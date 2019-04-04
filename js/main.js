@@ -23,10 +23,10 @@ document.getElementById("requestBtn").disabled = true
 
 function getXLGBalance(address) {
   if (!web3.isAddress(address)) {
-    document.getElementById('addressCheck').innerHTML = '<i class="fas fa-times-circle" style="color:#e66653" ></i>'
+    document.getElementById('addressCheck').innerHTML = '<i class="fas fa-times"" style="color:#e66653" ></i>'
     return;
   }
-  document.getElementById('addressCheck').innerHTML = '<i class="fas fa-check-circle" style="color:#46a656"></i>'
+  document.getElementById('addressCheck').innerHTML = '<i class="fas fa-check"" style="color:#46a656"></i>'
 
   const balance = web3.eth.getBalance(address, (error, balance) => {
     document.getElementById('xlgBalance').innerHTML = web3.fromWei(balance)
@@ -60,16 +60,24 @@ document.querySelector("#requestTokenForm").addEventListener("submit", function(
     console.log(json.data)
     if(json.data.success) {
       toastr.info(`${json.data.message}`, 'Transaction Sent');
-      document.getElementById("txUrl").innerHTML = `<a href="transaction/${json.data.receipt.transactionHash}">View Transaction<a>`
+      const receipt = json.data.receipt
+      const quantity = json.data.amount
+      const {blockHash, blockNumber, gasUsed, from, to, transactionHash} = receipt
+      document.getElementById('blockHash').innerHTML = blockHash
+      document.getElementById('blockNumber').innerHTML = blockNumber.toLocaleString()
+      document.getElementById('gasUsed').innerHTML = gasUsed
+      document.getElementById('from').innerHTML = from
+      document.getElementById('to').innerHTML = to
+      document.getElementById('transactionHash').innerHTML = transactionHash
+      document.getElementById('quantity').innerHTML = quantity + " XLG"
+
+      document.getElementById("txUrl").innerHTML = `<a href="#" data-toggle="modal" data-target="#exampleModalCenter">View Transaction<a>`
       document.getElementById("requestBtn").disabled = false
       document.getElementById("requestBtn").innerHTML = "Submit"
-      getXLGBalance(json.data.message.to)
-
 
     }
     if(!json.data.success) {
       toastr.error(json.data.message, "Something went wrong");
-      document.getElementById("requestBtn").disabled = true
       document.getElementById("requestBtn").innerHTML = "Submit"
       document.getElementById("requestBtn").disabled = false
     }
@@ -78,5 +86,11 @@ document.querySelector("#requestTokenForm").addEventListener("submit", function(
 });
 
 
-
+setInterval( () => {
+  const address = document.getElementById("address").value 
+  if (!web3.isAddress(address)) return
+  const balance = web3.eth.getBalance(address, (error, balance) => {
+    document.getElementById('xlgBalance').innerHTML = web3.fromWei(balance)
+  });
+},2500)
 
