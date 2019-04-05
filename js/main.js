@@ -1,7 +1,7 @@
 web3 = new Web3
 axios.get('/q')
   .then(response => {
-    document.getElementById('requestLimit').innerText = `Request limit: ${response.data.limit} XLG`
+    document.getElementById('requestLimit').innerText = `Request limit: ${response.data.limit} XLG per 24 hours`
   })
   .catch(error => {
     console.log(error)
