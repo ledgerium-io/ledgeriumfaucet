@@ -1,9 +1,8 @@
-console.log('Version: 1.338')
-let web3; 
+let web3;
 axios.get('/q')
   .then(response => {
+    console.log(response)
     web3 = new Web3(new Web3.providers.HttpProvider(response.data.web3));
-    console.log(`Conencted to Web3 (${response.data.web3})`)
     document.getElementById('requestLimit').innerText = `Request limit: ${response.data.limit} XLG`
   })
   .catch(error => {
@@ -17,9 +16,9 @@ inputAddress.value = ""
 function alertAddress() {
   console.log(inputAddress.value)
   getXLGBalance(inputAddress.value)
- 
+
 }
-document.getElementById("requestBtn").disabled = true 
+document.getElementById("requestBtn").disabled = true
 
 function getXLGBalance(address) {
   if (!web3.isAddress(address)) {
@@ -27,10 +26,16 @@ function getXLGBalance(address) {
     return;
   }
   document.getElementById('addressCheck').innerHTML = '<i class="fas fa-check"" style="color:#46a656"></i>'
-
-  const balance = web3.eth.getBalance(address, (error, balance) => {
-    document.getElementById('xlgBalance').innerHTML = web3.fromWei(balance)
-  });
+  document.getElementById('xlgBalance').innerHTML = '<span class="spinner-grow spinner-grow-sm"></span>'
+  axios.get(`/balance/${address}`)
+    .then(response => {
+      if (response.data.success) {
+          document.getElementById('xlgBalance').innerHTML = web3.fromWei(response.data.balance)
+      }
+    })
+    .catch(error => {
+      console.log(error)
+    })
 }
 
 function enableRequest() {
@@ -41,7 +46,7 @@ amount = 1
 document.querySelector("#amountSelector").onchange = function (e) {
   amount = parseInt(e.target.value)
 }
-  
+
 
 document.querySelector("#requestTokenForm").addEventListener("submit", function(e){
   e.preventDefault();
@@ -81,16 +86,21 @@ document.querySelector("#requestTokenForm").addEventListener("submit", function(
       document.getElementById("requestBtn").innerHTML = "Submit"
       document.getElementById("requestBtn").disabled = false
     }
-  })   
+  })
   .catch(console.log)
 });
 
 
 setInterval( () => {
-  const address = document.getElementById("address").value 
+  const address = document.getElementById("address").value
   if (!web3.isAddress(address)) return
-  const balance = web3.eth.getBalance(address, (error, balance) => {
-    document.getElementById('xlgBalance').innerHTML = web3.fromWei(balance)
-  });
+  axios.get(`/balance/${address}`)
+    .then(response => {
+      if (response.data.success) {
+          document.getElementById('xlgBalance').innerHTML = web3.fromWei(response.data.balance)
+      }
+    })
+    .catch(error => {
+      console.log(error)
+    })
 },2500)
-

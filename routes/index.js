@@ -13,7 +13,10 @@ client.on('connect', () => {
 client.on('error', err => {
     console.log(`[!] Error connecting to Redis: ${err}`);
 });
-
+defaultAccount = "0x"
+web3.eth.getAccounts().then(accounts => {
+  defaultAccount = accounts[0]
+})
 connected = false
 makingAnOrder = false
 rawTransaction = {
@@ -44,6 +47,26 @@ router.get('/', (request, response) => {
     response.sendFile(__dirname + '/views/index.html');
 })
 
+router.get('/balance/:address', (request, response) => {
+  const { address } = request.params
+  if (!web3.utils.isAddress(address)) return
+  web3.eth.getBalance(address)
+  .then(balance => {
+    response.send({
+      success: true,
+      message: "Got balance",
+      balance
+    })
+  })
+  .catch(error => {
+    response.send({
+      success: false,
+      message: error
+    })
+  })
+
+})
+
 router.get('/transaction/:tx', (request, response) => {
     const { tx } = request.params
     web3.eth.getTransaction(tx)
@@ -69,8 +92,14 @@ router.post('/', checkNodeStatus, verifyRecaptcha, checkLimit, makeTransaction, 
 
 function makeTransaction(request, response, next) {
         if(makingAnOrder) return response.send({success: false, message: 'Order que is full, please try again soon'})
-
         makingAnOrder = true
+
+        if(web3.eth.getBalance(defaultAccount) <= 0) {
+          makingAnOrder = false
+          return response.send({success: false, message: 'Faucet empty. Please contact the site administrator'})
+        }
+        web3.eth.getBalance(defaultAccount)
+        .then(console.log)
         const { address, amount } = request.body
 
         if(!web3.utils.isAddress(address)) {
@@ -85,49 +114,64 @@ function makeTransaction(request, response, next) {
             makingAnOrder = false
             return response.send({success: false, message: `Request must be between 0 and {process.env.REQUEST_LIMIT} XLG`})
         }
-
         rawTransaction.to = address
         rawTransaction.value = web3.utils.toHex(web3.utils.toWei(amount.toString(), "ether"))
+        web3.eth.getTransactionCount(defaultAccount)
+          .then(txCount => {
+            console.log(txCount)
 
-        web3.eth.accounts.signTransaction(rawTransaction, decryptedAccount.privateKey)
-        .then(res => {
-            console.log(`[+] Signed transaction successfully`)
-            signedTransaction = res.rawTransaction
-            console.log(`[+] Attempting to send ${amount} XLG`)
-            web3.eth.sendSignedTransaction(signedTransaction)
-            .then(receipt => {
-              console.log(`[+] Sent ${amount} XLG successfully`)
-              rawTransaction.nonce++
-              makingAnOrder = false
-              let netAmount = amount
-              if(request.amount) netAmount += request.amount
-              console.log(`[+] Recieved receipt`)
-              client.set(address.toLowerCase(), JSON.stringify({address: receipt.to, amount: netAmount, timestamp: Date.now()}), 'EX', parseInt(requestLimit))
-              return response.send({
-                  success: true,
-                  message: `You have successfuly been sent ${netAmount} XLG <br> Requested: ${netAmount}/${parseInt(process.env.REQUEST_LIMIT)}`,
-                  receipt,
-                  amount
-              })
+          })
+        web3.eth.getTransactionCount(defaultAccount, 'pending')
+          .then(txCount => {
+            console.log(txCount)
+            rawTransaction.nonce = txCount
+            web3.eth.accounts.signTransaction(rawTransaction, decryptedAccount.privateKey)
+            .then(res => {
+                console.log(`[+] Signed transaction successfully`)
+                signedTransaction = res.rawTransaction
+                console.log(`[+] Attempting to send ${amount} XLG`)
+                web3.eth.sendSignedTransaction(signedTransaction)
+                .then(receipt => {
+                  console.log(`[+] Sent ${amount} XLG successfully`)
+                  let netAmount = amount
+                  if(request.amount) netAmount += request.amount
+                  console.log(`[+] Recieved receipt`)
+                  client.set(address.toLowerCase(), JSON.stringify({address: receipt.to, amount: netAmount, timestamp: Date.now()}), 'EX', parseInt(requestLimit))
+                  makingAnOrder = false
+                  return response.send({
+                      success: true,
+                      message: `You have successfuly been sent ${netAmount} XLG <br> Requested: ${netAmount}/${parseInt(process.env.REQUEST_LIMIT)}`,
+                      receipt,
+                      amount
+                  })
+                })
+                .catch(error => {
+                  makingAnOrder = false
+                  console.log(`[!] Error: ${error.message}`)
+                  return response.send({
+                      success: false,
+                      message: error.message
+                  })
+                })
+
             })
             .catch(error => {
-              makingAnOrder = false
               console.log(`[!] Error: ${error.message}`)
+              makingAnOrder = false
               return response.send({
                   success: false,
-                  message: error.message
+                  message: `Server issue: ${error.message}`
+                })
+            })
+          })
+          .catch(error => {
+            makingAnOrder = false
+            return response.send({
+                success: false,
+                message: `Server issue: ${error.message}`
               })
-            })
+          })
 
-        })
-        .catch(error => {
-          console.log(`[!] Error: ${error.message}`)
-          makingAnOrder = false
-          return response.send({
-              success: false,
-              message: `Server issue: ${error.message}`
-            })
-        })
 
 }
 
