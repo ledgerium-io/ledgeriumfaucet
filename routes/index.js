@@ -1,3 +1,6 @@
+redisConnected = false
+nodeConnected = false
+
 const Web3 = require('web3')
 const express = require('express')
 const router = express.Router()
@@ -8,6 +11,7 @@ const web3 = new Web3(process.env.NODE_URL);
 
 const client = redis.createClient(process.env.REDIS_URL);
 client.on('connect', () => {
+  redisConnected = true
     console.log(`[+] Connected to Redis`);
 });
 client.on('error', err => {
@@ -17,7 +21,7 @@ defaultAccount = "0x"
 web3.eth.getAccounts().then(accounts => {
   defaultAccount = accounts[0]
 })
-connected = false
+
 makingAnOrder = false
 rawTransaction = {
     "to": "",
@@ -31,7 +35,7 @@ web3.eth.net.isListening()
     .then( (response) => {
         if(response) {
             console.log('[+] Connected to Ledgerium Node')
-            connected = true
+            nodeConnected = true
         } else {
             console.log(`[!] Error connecting to Ledgerium Node`);
         }
@@ -88,7 +92,7 @@ router.get('/q', (request, response) => {
     response.send({limit: parseInt(process.env.REQUEST_LIMIT)})
 })
 
-router.post('/', checkNodeStatus, verifyRecaptcha, checkLimit, makeTransaction, (request, response) => {})
+router.post('/', checkNodeStatus, checkRedisStatus, verifyRecaptcha, checkLimit, makeTransaction, (request, response) => {})
 
 function makeTransaction(request, response, next) {
         if(makingAnOrder) return response.send({success: false, message: 'Order que is full, please try again soon'})
@@ -98,8 +102,7 @@ function makeTransaction(request, response, next) {
           makingAnOrder = false
           return response.send({success: false, message: 'Faucet empty. Please contact the site administrator'})
         }
-        web3.eth.getBalance(defaultAccount)
-        .then(console.log)
+  
         const { address, amount } = request.body
 
         if(!web3.utils.isAddress(address)) {
@@ -118,7 +121,6 @@ function makeTransaction(request, response, next) {
         rawTransaction.value = web3.utils.toHex(web3.utils.toWei(amount.toString(), "ether"))
         web3.eth.getTransactionCount(defaultAccount, 'pending')
           .then(txCount => {
-            console.log(txCount)
             rawTransaction.nonce = txCount
             web3.eth.accounts.signTransaction(rawTransaction, decryptedAccount.privateKey)
             .then(res => {
@@ -135,7 +137,7 @@ function makeTransaction(request, response, next) {
                   makingAnOrder = false
                   return response.send({
                       success: true,
-                      message: `You have successfuly been sent ${netAmount} XLG <br> Requested: ${netAmount}/${parseInt(process.env.REQUEST_LIMIT)}`,
+                      message: `You have successfuly been sent ${amount} XLG <br> Requested: ${netAmount}/${parseInt(process.env.REQUEST_LIMIT)}`,
                       receipt,
                       amount
                   })
@@ -213,12 +215,23 @@ function timeLeft(timestamp) {
 }
 
 function checkNodeStatus(request, response, next) {
-    if(connected) {
+    if(nodeConnected) {
         return next()
     } else {
         return response.send({
             success: false,
-            message: "Server Error: Not connected to Ledgerium node"
+            message: "Server Error: Cannot establish a connection to Ledgerium node"
+        })
+    }
+}
+
+function checkRedisStatus(request, response, next) {
+    if(redisConnected) {
+        return next()
+    } else {
+        return response.send({
+            success: false,
+            message: "Server Error: Cannot establish a connection with the database"
         })
     }
 }
