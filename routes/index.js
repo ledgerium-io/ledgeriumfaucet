@@ -102,7 +102,7 @@ function makeTransaction(request, response, next) {
           makingAnOrder = false
           return response.send({success: false, message: 'Faucet empty. Please contact the site administrator'})
         }
-  
+
         const { address, amount } = request.body
 
         if(!web3.utils.isAddress(address)) {
@@ -137,7 +137,7 @@ function makeTransaction(request, response, next) {
                   makingAnOrder = false
                   return response.send({
                       success: true,
-                      message: `You have successfuly been sent ${amount} XLG <br> Requested: ${netAmount}/${parseInt(process.env.REQUEST_LIMIT)}`,
+                      message: `You have successfuly been sent ${amount} XLG <br> Transfered: ${netAmount} XLG in last 24 hours<br> Daily limit: ${parseInt(process.env.REQUEST_LIMIT)} XLG`,
                       receipt,
                       amount
                   })
