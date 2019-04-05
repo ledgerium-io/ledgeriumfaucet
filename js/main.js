@@ -1,7 +1,6 @@
 let web3;
 axios.get('/q')
   .then(response => {
-    console.log(response)
     web3 = new Web3(new Web3.providers.HttpProvider(response.data.web3));
     document.getElementById('requestLimit').innerText = `Request limit: ${response.data.limit} XLG`
   })
@@ -14,7 +13,6 @@ const inputAddress= document.querySelector("#address");
 inputAddress.addEventListener("input", alertAddress);
 inputAddress.value = ""
 function alertAddress() {
-  console.log(inputAddress.value)
   getXLGBalance(inputAddress.value)
 
 }
@@ -62,7 +60,6 @@ document.querySelector("#requestTokenForm").addEventListener("submit", function(
     amount
   })
   .then(json => {
-    console.log(json.data)
     if(json.data.success) {
       toastr.info(`${json.data.message}`, 'Transaction Sent');
       const receipt = json.data.receipt
