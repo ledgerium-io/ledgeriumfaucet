@@ -116,11 +116,6 @@ function makeTransaction(request, response, next) {
         }
         rawTransaction.to = address
         rawTransaction.value = web3.utils.toHex(web3.utils.toWei(amount.toString(), "ether"))
-        web3.eth.getTransactionCount(defaultAccount)
-          .then(txCount => {
-            console.log(txCount)
-
-          })
         web3.eth.getTransactionCount(defaultAccount, 'pending')
           .then(txCount => {
             console.log(txCount)
