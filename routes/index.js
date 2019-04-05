@@ -115,7 +115,7 @@ function makeTransaction(request, response, next) {
         }
         if(amount < 0 || amount > parseInt(process.env.REQUEST_LIMIT)) {
             makingAnOrder = false
-            return response.send({success: false, message: `Request must be between 0 and {process.env.REQUEST_LIMIT} XLG`})
+            return response.send({success: false, message: `Request must be between 0 and ${process.env.REQUEST_LIMIT} XLG`})
         }
         rawTransaction.to = address
         rawTransaction.value = web3.utils.toHex(web3.utils.toWei(amount.toString(), "ether"))
