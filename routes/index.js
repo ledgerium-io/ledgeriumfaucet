@@ -226,14 +226,15 @@ function checkNodeStatus(request, response, next) {
 
 function checkLimit(request, response, next) {
     const { amount, address } = request.body
-    client.get(address, function(error, result) {
+
+    client.get(address.toLowerCase(), function(error, result) {
         if (error) {
             console.log(error);
             throw error;
         } else {
             if(!result) return next()
             result = JSON.parse(result)
-            if(result.address == address) {
+            if(result.address == address.toLowerCase()) {
                 if(result.amount == process.env.REQUEST_LIMIT) {
                     return response.send({
                         success: false,
