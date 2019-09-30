@@ -1,5 +1,5 @@
 web3 = new Web3
-axios.get('/q')
+axios.get('./q')
   .then(response => {
     document.getElementById('requestLimit').innerText = `Request limit: ${response.data.limit} XLG per 24 hours`
   })
@@ -24,7 +24,7 @@ function getXLGBalance(address) {
   }
   document.getElementById('addressCheck').innerHTML = '<i class="fas fa-check"" style="color:#46a656"></i>'
   document.getElementById('xlgBalance').innerHTML = '<span class="spinner-grow spinner-grow-sm"></span>'
-  axios.get(`/balance/${address}`)
+  axios.get(`./balance/${address}`)
     .then(response => {
       if (response.data.success) {
           document.getElementById('xlgBalance').innerHTML = web3.fromWei(response.data.balance)
@@ -54,7 +54,7 @@ document.querySelector("#requestTokenForm").addEventListener("submit", function(
     return;
   }
   document.getElementById("requestBtn").innerHTML = '<div class="spinner-border" role="status"></div>'
-  axios.post('/', {
+  axios.post('./', {
     address,
     amount
   })
@@ -90,7 +90,7 @@ document.querySelector("#requestTokenForm").addEventListener("submit", function(
 setInterval( () => {
   const address = document.getElementById("address").value
   if (!web3.isAddress(address)) return
-  axios.get(`/balance/${address}`)
+  axios.get(`./balance/${address}`)
     .then(response => {
       if (response.data.success) {
           document.getElementById('xlgBalance').innerHTML = web3.fromWei(response.data.balance)
