@@ -6,21 +6,32 @@ const express = require('express')
 const router = express.Router()
 const https = require('https');
 const redis = require('redis');
+
 const requestLimit = process.env.REDIS_EXPIRE_SECONDS
 const web3 = new Web3(process.env.NODE_URL);
+web3.eth.extend({
+  property: 'txpool',
+  methods: [{
+    name: 'content',
+    call: 'txpool_content'
+  },{
+    name: 'inspect',
+    call: 'txpool_inspect'
+  },{
+    name: 'status',
+    call: 'txpool_status'
+  }]
+})
+
 
 const client = redis.createClient(process.env.REDIS_URL);
 client.on('connect', () => {
-  redisConnected = true
+    redisConnected = true
     console.log(`[+] Connected to Redis`);
 });
 client.on('error', err => {
     console.log(`[!] Error connecting to Redis: ${err}`);
 });
-defaultAccount = "0x"
-web3.eth.getAccounts().then(accounts => {
-  defaultAccount = accounts[0]
-})
 
 makingAnOrder = false
 rawTransaction = {
@@ -46,10 +57,9 @@ const privateKey = "0x"+ process.argv[2];
 const decryptedAccount = web3.eth.accounts.privateKeyToAccount(privateKey)
 
 
-
-router.get('/', (request, response) => {
-    response.sendFile(__dirname + '/views/index.html');
-})
+// router.get('/', (request, response) => {
+//     response.sendFile(__dirname + '/views/index.html');
+// })
 
 router.get('/balance/:address', (request, response) => {
   const { address } = request.params
@@ -92,19 +102,45 @@ router.get('/q', (request, response) => {
     response.send({limit: parseInt(process.env.REQUEST_LIMIT)})
 })
 
-router.post('/', checkNodeStatus, checkRedisStatus, verifyRecaptcha, checkLimit, makeTransaction, (request, response) => {})
+const debugRoute = (request, response, next) => {
+  console.log(request.body)
+  next()
+}
+
+router.post('/', debugRoute, checkNodeStatus, checkRedisStatus, verifyRecaptcha, checkLimit, makeTransaction, (request, response) => {})
+
+
+function getNonce(address) {
+  return new Promise((resolve, reject) => {
+    Promise.all([
+      web3.eth.txpool.content(),
+      web3.eth.getTransactionCount(address, 'pending')
+    ])
+      .then(data => {
+        const txpool = data[0]
+        let transactionCount = data[1]
+        if(txpool.pending) {
+          if(txpool.pending[address]) {
+            const pendingNonces = Object.keys(txpool.pending[address])
+            transactionCount = parseInt(pendingNonces[pendingNonces.length-1])+1
+          }
+        }
+        console.log(`Nounce: ${transactionCount}`)
+        resolve(transactionCount)
+      })
+      .catch(reject)
+  })
+}
 
 function makeTransaction(request, response, next) {
         if(makingAnOrder) return response.send({success: false, message: 'Order que is full, please try again soon'})
         makingAnOrder = true
-
-        if(web3.eth.getBalance(defaultAccount) <= 0) {
+        if(web3.eth.getBalance(decryptedAccount.address) <= 0) {
           makingAnOrder = false
           return response.send({success: false, message: 'Faucet empty. Please contact the site administrator'})
         }
 
         const { address, amount } = request.body
-
         if(!web3.utils.isAddress(address)) {
             makingAnOrder = false
             return response.send({success: false, message: 'Please enter a valid address'})
@@ -119,7 +155,7 @@ function makeTransaction(request, response, next) {
         }
         rawTransaction.to = address
         rawTransaction.value = web3.utils.toHex(web3.utils.toWei(amount.toString(), "ether"))
-        web3.eth.getTransactionCount(defaultAccount, 'pending')
+        getNonce(decryptedAccount.address)
           .then(txCount => {
             rawTransaction.nonce = txCount
             web3.eth.accounts.signTransaction(rawTransaction, decryptedAccount.privateKey)
@@ -163,6 +199,7 @@ function makeTransaction(request, response, next) {
           })
           .catch(error => {
             makingAnOrder = false
+            console.log(`[!] Error: ${error.message}`)
             return response.send({
                 success: false,
                 message: `Server issue: ${error.message}`
