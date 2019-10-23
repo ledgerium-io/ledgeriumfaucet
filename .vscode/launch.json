@@ -5,12 +5,12 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Launch Program",
             "type": "node",
             "request": "launch",
-            "name": "Launch Program",
             "console" : "externalTerminal",
             "program": "${workspaceFolder}/index.js",
-            "args":["0x83a5803e698a3642d5309f119643f6a729c7c51fac00fdffac31983cb5275bb5"]
+            "args":["aa9591911821917b0c07f7fbd93a807315f5decbe23e463a4b900e78d74d74f2"]
         }
     ]
 }

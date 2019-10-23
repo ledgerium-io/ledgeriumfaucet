@@ -1,0 +1,13 @@
+version: '3'
+services:
+  redis:
+    image: 'redis:alpine'
+    ports:
+      - '6379:6379'
+    networks:
+      test_net:
+        ipv4_address: 172.19.240.3
+volumes: {}
+networks:
+  test_net:
+    external: true
