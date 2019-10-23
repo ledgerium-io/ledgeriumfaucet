@@ -1,4 +1,4 @@
-# Ledgerium Token Faucet
+# Ledgerium Faucet
 
 ## Prerequisites
 ### NodeJS
@@ -61,25 +61,23 @@ echo.>.env
 ```
 Open the `.env` file in any text editor and insert the following
 ```
-CAPTCHA_SECRET=6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe
-REDIS_URL=redis://127.0.0.1:6379
-NODE_URL=http://125.254.27.14:8545
-REDIS_EXPIRE_SECONDS=60
+NODE_ENV=
+NODE_URL=http://172.19.240.1:8545
 REQUEST_LIMIT=3
+GOOGLE_CAPTCHA_SECRET=6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe
+REDIS_URL=redis://172.19.240.3:6379
+REDIS_EXPIRE_SECONDS=86400
 ```
 
+* `NODE_URL` -> Ledgerium node address and port
+
+* `REQUEST_LIMIT` -> Limit how many tokens a user can request per limit time cycle
 
 * `GOOGLE_CAPTCHA_SECRET` -> Google Captcha secret key, the one above is public for local testing only
 
 * `REDIS_URL` -> Use 'redis' if using in docker, or a url if running locally
 
-* `NODE_URL` -> Ledgerium node address and port
-
 * `REDIS_EXPIRE_SECONDS` -> Limit (in seconds) how long a user must wait to receive more XLG
-
-* `REQUEST_LIMIT` -> Limit how many tokens a user can request per limit time cycle
-
-
 
 Install the package dependencies using NPM
 ```
@@ -96,7 +94,7 @@ node index [private key]
 ```
 Example:
 ```
-node index 29cf428305336e251c117394b0a327b55604230affb888885d871763cf7fe43d
+node index.js 29cf428305336e251c117394b0a327b55604230affb888885d871763cf7fe43d
 ```
 
 ## Docker Container (optional)
