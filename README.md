@@ -41,7 +41,7 @@ Docker version 18.09.2, build 6247962
 # Download and Setup
 Clone this repository to your computer
 ```
-git clone https://github.com/ledgerium/ledgeriumfaucet.git
+git clone https://github.com/ledgerium-io/ledgeriumfaucet.git
 ```
 
 Navigate into the `ledgeriumfaucet` directory

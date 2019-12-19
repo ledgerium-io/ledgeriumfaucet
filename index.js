@@ -1,20 +1,16 @@
-const dotenv = require('dotenv').config()
-const express = require('express');
-const socket = require('socket.io');
-const chalk = require('chalk');
-const app = express();
-const cors = require('cors');
+const dotenv = require('dotenv')
+const logger = require('./lib/logger');
+const path = require('path');
 
-const port = process.env.PORT || 5577;
-const server = app.listen(port, () => {
-  const io = module.exports = socket(server);
-  console.log(`[+] Listening on port: ${chalk.green(port)}`)
+const environment = process.env.NODE_ENV || 'dev';
 
-  const router = require('./routes/');
-  app.use(express.json());
-  app.use(cors());
-  app.use('/', router)
-  app.use(express.static(__dirname + '/public'));
-    app.use(express.static(__dirname + '/css'));
-    app.use(express.static(__dirname + '/js'));
+if (environment === 'dev') {
+    logger.info(`Loading Environment Variables from ${environment}.env`);
+    dotenv.config( { path: path.resolve(process.cwd(), `./environments/${environment}/.env`) });
+}
+
+const server = require('./lib/server.js')
+const port = process.env.SERVER_PORT || 5577;
+server.listen(port, () => {
+  logger.info(`Listening on port ${port}`)
 })
